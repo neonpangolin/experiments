@@ -35,7 +35,24 @@
 
     .hint { position: fixed; left: 50%; transform: translateX(-50%); bottom: 10px; padding: 6px 10px; border-radius: 10px; background: rgba(29,28,27,0.9); color: #fff; z-index: 9998; opacity: 0; pointer-events: none; transition: opacity .15s; }
     .hint.show { opacity: 1; }
-  </style>
+  
+    /* Minimal URL prompt overlay as a secure-context fallback */
+    .urlPromptOverlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.28);
+      display: none; align-items: center; justify-content: center; z-index: 10000;
+    }
+    .urlPromptCard {
+      background: #fff; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.25);
+      padding: 16px; width: min(520px, 90vw);
+      display: flex; gap: 8px; align-items: center;
+    }
+    .urlPromptCard input {
+      flex: 1; padding: 10px 12px; font-size: 16px; border-radius: 8px; border: 1px solid #ddd;
+    }
+    .urlPromptCard button {
+      padding: 10px 14px; border: 0; border-radius: 8px; background: #1d1c1b; color: #fff; cursor: pointer;
+    }
+    </style>
 </head>
 <body>
   <div id="stageWrap"></div>
@@ -125,6 +142,35 @@
     }
 
 
+    
+    function urlPrompt(){
+      return new Promise((resolve)=>{
+        const ov = document.getElementById('urlPromptOverlay');
+        const input = document.getElementById('urlPromptInput');
+        const ok = document.getElementById('urlPromptOk');
+        function done(val){ cleanup(); resolve(val); }
+        function cleanup(){
+          ov.style.display='none'; ov.setAttribute('aria-hidden','true');
+          input.value=''; ok.removeEventListener('click', onOk);
+          input.removeEventListener('keydown', onKey);
+          ov.removeEventListener('click', onOv);
+          setTimeout(()=>input.blur(), 0);
+        }
+        function onKey(e){
+          if(e.key==='Enter'){ const v=input.value.trim(); done(v? v:null); }
+          else if(e.key==='Escape'){ done(null); }
+        }
+        function onOv(e){
+          if(e.target===ov){ done(null); }
+        }
+        function onOk(){ const v=input.value.trim(); done(v? v:null); }
+        ov.style.display='flex'; ov.setAttribute('aria-hidden','false');
+        input.value=''; setTimeout(()=>{ input.focus(); input.select(); }, 0);
+        ok.addEventListener('click', onOk);
+        input.addEventListener('keydown', onKey);
+        ov.addEventListener('click', onOv);
+      });
+    }
     /* ========= Stage / Groups ========= */
     const stageWrap = document.getElementById('stageWrap');
     const stage = new Konva.Stage({container:'stageWrap',width:stageWrap.clientWidth,height:stageWrap.clientHeight});
@@ -193,27 +239,33 @@
 
     /* ========= Clipboard + Add ========= */
     async function readClipboardUrl(){
+      // Try secure clipboard read first
       try{
-        const text = await navigator.clipboard.readText();
-        const m = text && text.match(/https?:\/\/[^\s\)\]}\\"'<>]+/i);
-
-    function addNode(url, pos){
-      const nu = normalizeUrl(url);
-      if(!nu) return;
-      if(urlSet.has(nu)) { return; } // avoid duplicates silently
-      const node = { id:idSeq++, url:nu, x:pos.x, y:pos.y, comment:'' };
-      graph.nodes.push(node); urlSet.add(nu);
-      if(typeof drawNode === 'function'){ drawNode(node); }
-      if(typeof ensureNodeIcon === 'function'){ ensureNodeIcon(node.id); }
-      if(typeof layer !== 'undefined'){ layer.draw && layer.draw(); }
-      history.push({ type:'add-node', id: node.id });
-      save();
+        if(navigator.clipboard && window.isSecureContext){
+          const text = await navigator.clipboard.readText();
+          const m = text && text.match(/https?:\/\/[^\s\)\]}\\"'<>]+/i);
+          if(m) return m[0];
+          // No link in clipboard -> stay silent
+          return null;
+        }
+      }catch(e){
+        // If blocked or not allowed, fall through to prompt fallback below
+      }
+      // Fallback: if clipboard API is unavailable or blocked (e.g., file:// or http),
+      // show a small inline prompt so the user can paste a link manually.
+      try{
+        const typed = await urlPrompt();
+        const m = typed && typed.match(/https?:\/\/[^\s\)\]}\\"'<>]+/i);
+        return m ? m[0] : null;
+      }catch{ return null; }
     }
+      try {
         if(m) return m[0];
-      }catch{}
+      // If clipboard read fails or is not allowed, try to prompt the user
+      } catch {}
       // No clipboard link -> be silent per requirement #2
       return null;
-    }
+    
 
     function removeNode(id){
       const g=findNodeGroup(id); if(g) g.destroy();
@@ -319,24 +371,7 @@
     
     // ========= Keyboard Shortcuts =========
 
-    // Also support system paste (Ctrl/Cmd+V) with URL text
-    window.addEventListener('paste', (e)=>{
-      const el = e.target;
-      const tag = (el && el.tagName) || '';
-      const isFormEl = /INPUT|TEXTAREA|SELECT/.test(tag);
-      const isEditable = el && el.isContentEditable;
-      const isVisible = el && el.offsetParent !== null;
-      if ((isFormEl || isEditable) && isVisible) return;
-      const text = (e.clipboardData && e.clipboardData.getData('text')) || '';
-      const m = text && text.match(/https?:\/\/[^\s\)\]}\\"'<>]+/i);
-      if(m){
-        e.preventDefault();
-        const center = { x: stage.width()/2, y: stage.height()/2 };
-        const pos = toLocalFromStage(center);
-        addNode(m[0], pos);
-      }
-    }, true);
-        async function addFromClipboardAtCenter(){
+    async function addFromClipboardAtCenter(){
       const url = await readClipboardUrl(); if(!url) return;
       // drop at screen center in world coordinates
       const center = { x: stage.width()/2, y: stage.height()/2 };
@@ -362,5 +397,12 @@
     function init(){ resize(); load(); toast('Tap canvas to add from clipboard • Double-tap a node to add a description • Use menu to connect/delete'); }
     init();
   </script>
+
+  <div class="urlPromptOverlay" id="urlPromptOverlay" aria-hidden="true">
+    <div class="urlPromptCard" role="dialog" aria-label="Paste a link">
+      <input id="urlPromptInput" type="text" placeholder="Paste a link (https://...)" autocomplete="off" />
+      <button id="urlPromptOk">Add</button>
+    </div>
+  </div>
 </body>
 </html>
