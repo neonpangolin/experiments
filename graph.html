@@ -1,0 +1,651 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2575.6">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; -webkit-text-stroke: #000000}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; -webkit-text-stroke: #000000; min-height: 14.0px}
+    span.s1 {font-kerning: none}
+  </style>
+</head>
+<body>
+<p class="p1"><span class="s1">&lt;!DOCTYPE html&gt;</span></p>
+<p class="p1"><span class="s1">&lt;html lang="en"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;head&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;title&gt;Lightweight Visual Graphing Tool&lt;/title&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;style&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>body {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>font-family: Helvetica, sans-serif;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>font-size: 10pt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin: 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>padding: 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>overflow: hidden;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>#toolbar {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>padding: 5px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>background: #eee;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>display: flex;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>gap: 5px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>#url-input {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>flex: 1;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>#canvas {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>width: 100%;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>height: calc(100vh - 40px);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>position: relative;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>#svg {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>width: 100%;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>height: 100%;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>background: #fff;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.node {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>cursor: move;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.selected {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>filter: drop-shadow(0 0 2px blue);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.edge {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>stroke: #ccc;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>stroke-width: 1;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>fill: none;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>button.active {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>background: #ccc;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/head&gt;</span></p>
+<p class="p1"><span class="s1">&lt;body&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div id="toolbar"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;input id="url-input" type="text" placeholder="Paste link here"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;button id="add-btn"&gt;Add&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;button id="connect-btn"&gt;Connect&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;button id="undo-btn"&gt;Undo&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;button id="clear-btn"&gt;Clear&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;button id="export-btn"&gt;Export PNG&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div id="canvas"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;svg id="svg" xmlns="http://www.w3.org/2000/svg"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;g id="zoom-group"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;g id="edges-group"&gt;&lt;/g&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>&lt;g id="nodes-group"&gt;&lt;/g&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/g&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/svg&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;script&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const svgNS = 'http://www.w3.org/2000/svg';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const xlinkNS = 'http://www.w3.org/1999/xlink';</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const icons = {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>twitter: '&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"&gt;&lt;path fill="#000" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.657l-5.214-6.817-5.97 6.817h-3.31l7.73-8.835-8.14-10.665h6.826l4.713 6.231 5.49-6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/&gt;&lt;/svg&gt;',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>facebook: '&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"&gt;&lt;path fill="#1877F2" d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-4.192 2.133-4.192 4v4z"/&gt;&lt;/svg&gt;',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>youtube: '&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"&gt;&lt;path fill="#FF0000" d="M23.5 6.5c-.3-1.1-1.1-1.9-2.2-2.2-2-.3-10.3-.3-12.3 0-1.1.3-1.9 1.1-2.2 2.2-.3 2-.3 6.5 0 8.5.3 1.1 1.1 1.9 2.2 2.2 2 .3 10.3.3 12.3 0 1.1-.3 1.9-1.1 2.2-2.2.3-2 .3-6.5 0-8.5zm-13.5 7.5v-5l5 2.5-5 2.5z"/&gt;&lt;/svg&gt;',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>instagram: '&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"&gt;&lt;rect width="20" height="20" x="2" y="2" rx="5" ry="5" fill="none" stroke="#E1306C" stroke-width="2"/&gt;&lt;path fill="#E1306C" d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/&gt;&lt;line stroke="#E1306C" stroke-width="2.5" x1="17.5" x2="17.51" y1="6.5" y2="6.5"/&gt;&lt;/svg&gt;',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>default: '&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"&gt;&lt;path fill="#000" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/&gt;&lt;/svg&gt;'</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>};</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const domainToIcon = {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>'twitter.com': 'twitter',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>'x.com': 'twitter',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>'facebook.com': 'facebook',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>'youtube.com': 'youtube',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>'youtu.be': 'youtube',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>'instagram.com': 'instagram'</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>};</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function getIcon(url) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>try {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const hostname = new URL(url).hostname;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>for (const domain in domainToIcon) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>if (hostname.includes(domain)) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>return domainToIcon[domain];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>} catch (e) {}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>return 'default';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const svg = document.getElementById('svg');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const zoomGroup = document.getElementById('zoom-group');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const edgesGroup = document.getElementById('edges-group');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const nodesGroup = document.getElementById('nodes-group');</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let nodes = [];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let edges = [];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let scale = 1;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let panX = 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let panY = 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let mode = 'default'; // 'default', 'connect'</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let selectedNodes = new Set();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let connectStart = null;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let isDragging = false;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let dragTarget = null;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let startX = 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let startY = 0;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let pinchStartDist = 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let pinchStartScale = 1;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let pinchStartMidX = 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let pinchStartMidY = 0;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let history = [];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let lastTapTime = 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>let lastTapId = null;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const STORAGE_KEY = 'graph-data';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const TAP_THRESHOLD = 5; // pixels</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const DOUBLE_TAP_TIME = 300; // ms</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function updateTransform() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>zoomGroup.setAttribute('transform', `translate(${panX} ${panY}) scale(${scale})`);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function getCurrentState() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>return {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>nodes: nodes.map(n =&gt; ({id: n.id, url: n.url, x: n.x, y: n.y, desc: n.desc})),</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>edges: edges.map(e =&gt; ({from: e.from, to: e.to})),</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>scale,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>panX,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>panY</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>};</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function pushHistory() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const state = getCurrentState();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>history.push(JSON.stringify(state));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (history.length &gt; 20) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>history.shift();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function restoreState(state) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const data = JSON.parse(state);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>nodes.forEach(n =&gt; n.element.remove());</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>edges.forEach(e =&gt; e.element.remove());</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>nodes = [];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>edges = [];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>nodes = data.nodes.map(n =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const node = {...n, element: createNodeElement(n.id, n.url, n.x, n.y, n.desc)};</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>nodesGroup.appendChild(node.element);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>return node;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>edges = data.edges.map(e =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const edgeEl = createEdgeElement(e.from, e.to);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>edgesGroup.appendChild(edgeEl);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>return {...e, element: edgeEl};</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>scale = data.scale || 1;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>panX = data.panX || 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>panY = data.panY || 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>updateTransform();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>selectedNodes.clear();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>connectStart = null;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>document.querySelectorAll('.selected').forEach(el =&gt; el.classList.remove('selected'));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>saveToLocal();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function undo() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (history.length &gt; 0) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>restoreState(history.pop());</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function saveToLocal() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>localStorage.setItem(STORAGE_KEY, JSON.stringify(getCurrentState()));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function loadFromLocal() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const dataStr = localStorage.getItem(STORAGE_KEY);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (dataStr) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>restoreState(dataStr);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function createNodeElement(id, url, x, y, desc = '') {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const g = document.createElementNS(svgNS, 'g');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>g.setAttribute('class', 'node');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>g.setAttribute('transform', `translate(${x} ${y})`);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>g.dataset.id = id;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const a = document.createElementNS(svgNS, 'a');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>a.setAttributeNS(xlinkNS, 'href', url);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>a.setAttribute('target', '_blank');</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const iconType = getIcon(url);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const image = document.createElementNS(svgNS, 'image');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>image.setAttribute('width', '32');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>image.setAttribute('height', '32');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>image.setAttribute('x', '-16');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>image.setAttribute('y', '-16');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>image.setAttributeNS(xlinkNS, 'href', `data:image/svg+xml,${encodeURIComponent(icons[iconType])}`);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>a.appendChild(image);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>g.appendChild(a);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (desc) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const text = document.createElementNS(svgNS, 'text');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>text.setAttribute('x', '0');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>text.setAttribute('y', '20');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>text.setAttribute('text-anchor', 'middle');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>text.textContent = desc;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>g.appendChild(text);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>return g;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function calculatePathD(from, to) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const dx = to.x - from.x;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const dy = to.y - from.y;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const len = Math.hypot(dx, dy);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (len === 0 || Math.abs(dx) &lt; 1e-6 || Math.abs(dy) &lt; 1e-6) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>return `M${from.x} ${from.y} L${to.x} ${to.y}`;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const midX = (from.x + to.x) / 2;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const midY = (from.y + to.y) / 2;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const perpX = -dy / len * 50;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const perpY = dx / len * 50;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const controlX = midX + perpX;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const controlY = midY + perpY;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>return `M${from.x} ${from.y} Q ${controlX} ${controlY} ${to.x} ${to.y}`;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function createEdgeElement(fromId, toId) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const fromNode = nodes.find(n =&gt; n.id === fromId);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const toNode = nodes.find(n =&gt; n.id === toId);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (!fromNode || !toNode) return null;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const path = document.createElementNS(svgNS, 'path');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>path.setAttribute('class', 'edge');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>path.setAttribute('d', calculatePathD(fromNode, toNode));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>path.dataset.from = fromId;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>path.dataset.to = toId;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>return path;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function updateEdgesForNode(nodeId) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>edges.filter(e =&gt; e.from === nodeId || e.to === nodeId).forEach(e =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const from = nodes.find(n =&gt; n.id === e.from);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const to = nodes.find(n =&gt; n.id === e.to);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>e.element.setAttribute('d', calculatePathD(from, to));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function addNode(url) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (!url) return;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>pushHistory();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const id = Date.now();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const viewWidth = svg.clientWidth / scale;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const viewHeight = svg.clientHeight / scale;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const x = (viewWidth / 2 - panX / scale) + Math.random() * 50 - 25;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const y = (viewHeight / 2 - panY / scale) + Math.random() * 50 - 25;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const element = createNodeElement(id, url, x, y);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>nodesGroup.appendChild(element);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>nodes.push({id, url, x, y, element, desc: ''});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>saveToLocal();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function addEdge(fromId, toId) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (fromId === toId || edges.some(e =&gt; (e.from === fromId &amp;&amp; e.to === toId) || (e.from === toId &amp;&amp; e.to === fromId))) return;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const element = createEdgeElement(fromId, toId);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (element) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>edgesGroup.appendChild(element);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>edges.push({from: fromId, to: toId, element});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>saveToLocal();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function clearCanvas() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>pushHistory();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>nodes = [];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>edges = [];</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>selectedNodes.clear();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>edgesGroup.innerHTML = '';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>nodesGroup.innerHTML = '';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>scale = 1;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>panX = 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>panY = 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>updateTransform();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>saveToLocal();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function exportPNG() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const svgData = new XMLSerializer().serializeToString(svg);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const url = URL.createObjectURL(svgBlob);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const img = new Image();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>img.onload = () =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const canvas = document.createElement('canvas');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>canvas.width = svg.clientWidth;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>canvas.height = svg.clientHeight;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const ctx = canvas.getContext('2d');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>ctx.drawImage(img, 0, 0);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const pngUrl = canvas.toDataURL('image/png');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const a = document.createElement('a');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>a.href = pngUrl;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>a.download = 'graph.png';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>a.click();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>URL.revokeObjectURL(url);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>};</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>img.src = url;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function getEventPosition(e) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const rect = svg.getBoundingClientRect();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const clientX = e.clientX || (e.touches &amp;&amp; e.touches[0].clientX);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const clientY = e.clientY || (e.touches &amp;&amp; e.touches[0].clientY);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>return {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>x: (clientX - rect.left - panX) / scale,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>y: (clientY - rect.top - panY) / scale</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>};</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function getViewportPosition(e) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const rect = svg.getBoundingClientRect();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const clientX = e.clientX || (e.touches &amp;&amp; e.touches[0].clientX);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const clientY = e.clientY || (e.touches &amp;&amp; e.touches[0].clientY);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>return {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>x: clientX - rect.left,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>y: clientY - rect.top</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>};</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function handleStart(e) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (e.touches &amp;&amp; e.touches.length === 2) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>pushHistory();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>e.preventDefault();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const touch1 = getViewportPosition({clientX: e.touches[0].clientX, clientY: e.touches[0].clientY});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const touch2 = getViewportPosition({clientX: e.touches[1].clientX, clientY: e.touches[1].clientY});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>pinchStartDist = Math.hypot(touch1.x - touch2.x, touch1.y - touch2.y);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>pinchStartMidX = (touch1.x + touch2.x) / 2;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>pinchStartMidY = (touch1.y + touch2.y) / 2;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>pinchStartScale = scale;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>return;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const target = e.target.closest('.node');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>startX = (e.clientX || e.touches[0].clientX);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>startY = (e.clientY || e.touches[0].clientY);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>isDragging = true;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (mode === 'connect') {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>if (target) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>const id = parseInt(target.dataset.id);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>if (!connectStart) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>connectStart = id;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>target.classList.add('selected');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>} else {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>pushHistory();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>addEdge(connectStart, id);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>document.querySelector(`[data-id="${connectStart}"]`).classList.remove('selected');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>connectStart = null;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>return;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// Default mode</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (target) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>pushHistory();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>dragTarget = 'node';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const id = parseInt(target.dataset.id);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>if (!selectedNodes.has(id)) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>selectedNodes.clear();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>document.querySelectorAll('.selected').forEach(el =&gt; el.classList.remove('selected'));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>selectedNodes.add(id);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>target.classList.add('selected');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>// Store initial positions for all selected</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>selectedNodes.forEach(selId =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>const node = nodes.find(n =&gt; n.id === selId);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>node.startX = node.x;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>node.startY = node.y;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>} else {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>pushHistory();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>dragTarget = 'pan';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function handleMove(e) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (e.touches &amp;&amp; e.touches.length === 2) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>e.preventDefault();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const touch1 = getViewportPosition({clientX: e.touches[0].clientX, clientY: e.touches[0].clientY});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const touch2 = getViewportPosition({clientX: e.touches[1].clientX, clientY: e.touches[1].clientY});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const newDist = Math.hypot(touch1.x - touch2.x, touch1.y - touch2.y);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const newScale = pinchStartScale * (newDist / pinchStartDist);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>// Zoom at midpoint</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const midX = (touch1.x + touch2.x) / 2;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const midY = (touch1.y + touch2.y) / 2;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>// World coord at start</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const worldX = (pinchStartMidX - panX) / scale;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const worldY = (pinchStartMidY - panY) / scale;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>scale = newScale;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>panX = pinchStartMidX - worldX * newScale;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>panY = pinchStartMidY - worldY * newScale;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>updateTransform();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>return;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (!isDragging) return;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const currentX = (e.clientX || e.touches[0].clientX);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const currentY = (e.clientY || e.touches[0].clientY);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const dx = (currentX - startX) / scale;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const dy = (currentY - startY) / scale;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (dragTarget === 'node') {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>selectedNodes.forEach(id =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>const node = nodes.find(n =&gt; n.id === id);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>node.x = node.startX + dx;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>node.y = node.startY + dy;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>node.element.setAttribute('transform', `translate(${node.x} ${node.y})`);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>updateEdgesForNode(id);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>} else if (dragTarget === 'pan') {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>panX += (currentX - startX);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>panY += (currentY - startY);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>updateTransform();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>startX = currentX;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>startY = currentY;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function handleEnd(e) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (pinchStartDist &gt; 0) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>pinchStartDist = 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>saveToLocal();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>return;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const endX = (e.clientX || (e.changedTouches &amp;&amp; e.changedTouches[0].clientX) || startX);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const endY = (e.clientY || (e.changedTouches &amp;&amp; e.changedTouches[0].clientY) || startY);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const dist = Math.hypot(endX - startX, endY - startY);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (dragTarget === 'node' &amp;&amp; dist &lt; TAP_THRESHOLD &amp;&amp; mode === 'default') {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const target = e.target.closest('.node');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>if (target) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>const id = parseInt(target.dataset.id);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>const node = nodes.find(n =&gt; n.id === id);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>if (e.changedTouches) { // touch</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>const now = Date.now();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>if (lastTapId === id &amp;&amp; now - lastTapTime &lt; DOUBLE_TAP_TIME) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>pushHistory();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>const desc = prompt('Enter description:', node.desc || '');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>if (desc !== null) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>node.desc = desc;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>let textEl = target.querySelector('text');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>if (!textEl) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                    </span>textEl = document.createElementNS(svgNS, 'text');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                    </span>textEl.setAttribute('x', '0');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                    </span>textEl.setAttribute('y', '20');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                    </span>textEl.setAttribute('text-anchor', 'middle');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                    </span>target.appendChild(textEl);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>textEl.textContent = desc;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>saveToLocal();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>lastTapTime = 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>lastTapId = null;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>if (connectStart) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>document.querySelector(`[data-id="${connectStart}"]`).classList.remove('selected');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>connectStart = null;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>} else {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>if (connectStart) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>if (id !== connectStart) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                    </span>pushHistory();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                    </span>addEdge(connectStart, id);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>document.querySelector(`[data-id="${connectStart}"]`).classList.remove('selected');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>connectStart = null;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>} else {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>connectStart = id;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>target.classList.add('selected');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>lastTapTime = now;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>lastTapId = id;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>} else { // mouse</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>if (connectStart) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>if (id !== connectStart) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>pushHistory();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>addEdge(connectStart, id);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>document.querySelector(`[data-id="${connectStart}"]`).classList.remove('selected');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>connectStart = null;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>} else {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>connectStart = id;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>target.classList.add('selected');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>} else if (dragTarget === 'pan' &amp;&amp; dist &lt; TAP_THRESHOLD &amp;&amp; mode === 'default') {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>// Tap on background</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>if (connectStart) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>document.querySelector(`[data-id="${connectStart}"]`).classList.remove('selected');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>connectStart = null;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (dragTarget === 'node' || dragTarget === 'pan') {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>saveToLocal();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>isDragging = false;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>dragTarget = null;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function handleDblClick(e) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const target = e.target.closest('.node');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (target) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const id = parseInt(target.dataset.id);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const node = nodes.find(n =&gt; n.id === id);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>pushHistory();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const desc = prompt('Enter description:', node.desc || '');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>if (desc !== null) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>node.desc = desc;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>let textEl = target.querySelector('text');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>if (!textEl) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>textEl = document.createElementNS(svgNS, 'text');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>textEl.setAttribute('x', '0');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>textEl.setAttribute('y', '20');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>textEl.setAttribute('text-anchor', 'middle');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>target.appendChild(textEl);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>textEl.textContent = desc;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>saveToLocal();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>if (connectStart) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>document.querySelector(`[data-id="${connectStart}"]`).classList.remove('selected');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>connectStart = null;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function handleClick(e) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (mode !== 'default' || e.target.closest('.node')) return;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// Click on bg in default: deselect all</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>selectedNodes.clear();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>document.querySelectorAll('.selected').forEach(el =&gt; el.classList.remove('selected'));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (connectStart) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>document.querySelector(`[data-id="${connectStart}"]`).classList.remove('selected');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>connectStart = null;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function setMode(newMode) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>mode = newMode;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>document.querySelectorAll('#toolbar button').forEach(btn =&gt; btn.classList.remove('active'));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (newMode !== 'default') {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>document.getElementById(`${newMode}-btn`).classList.add('active');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (newMode !== 'connect' &amp;&amp; connectStart) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const startEl = document.querySelector(`[data-id="${connectStart}"]`);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>if (startEl) startEl.classList.remove('selected');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>connectStart = null;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>function handleKeyDown(e) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (e.ctrlKey &amp;&amp; e.key === 'z') {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>undo();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// Event listeners</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>svg.addEventListener('mousedown', handleStart);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>svg.addEventListener('mousemove', handleMove);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>svg.addEventListener('mouseup', handleEnd);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>svg.addEventListener('mouseleave', handleEnd);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>svg.addEventListener('touchstart', handleStart, {passive: false});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>svg.addEventListener('touchmove', handleMove, {passive: false});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>svg.addEventListener('touchend', handleEnd, {passive: false});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>svg.addEventListener('touchcancel', handleEnd, {passive: false});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>svg.addEventListener('dblclick', handleDblClick);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>svg.addEventListener('click', handleClick);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>document.addEventListener('keydown', handleKeyDown);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// Prevent link open in connect mode</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>svg.addEventListener('click', e =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (mode === 'connect' &amp;&amp; e.target.closest('a')) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>e.preventDefault();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>e.stopPropagation();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}, true);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// Buttons</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>document.getElementById('add-btn').addEventListener('click', () =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>addNode(document.getElementById('url-input').value.trim());</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>document.getElementById('url-input').value = '';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>document.getElementById('url-input').addEventListener('keydown', e =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>if (e.key === 'Enter') {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>addNode(e.target.value.trim());</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>e.target.value = '';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>document.getElementById('connect-btn').addEventListener('click', () =&gt; setMode(mode === 'connect' ? 'default' : 'connect'));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>document.getElementById('undo-btn').addEventListener('click', undo);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>document.getElementById('clear-btn').addEventListener('click', clearCanvas);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>document.getElementById('export-btn').addEventListener('click', exportPNG);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// Load</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>loadFromLocal();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/body&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/html&gt;</span></p>
+</body>
+</html>
