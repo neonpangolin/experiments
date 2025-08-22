@@ -12,8 +12,8 @@
     #menu li { padding: 5px; cursor: pointer; }
     #menu li:hover { background: lightgray; }
     @media (max-width: 600px), (pointer: coarse) {
-    #menu { font-size: 18px; }
-    #menu li { padding: 12px 16px; }
+    #menu { font-size: 22px; }
+    #menu li { padding: 16px 20px; }
   }
 </style>
 </head>
@@ -49,7 +49,7 @@ Konva.hitOnDragEnabled = true;
 
 // Device / input heuristics
 const isPhone = window.matchMedia('(max-width: 600px)').matches || window.matchMedia('(pointer: coarse)').matches;
-const NODE_SCALE = isPhone ? 1.4 : 1.0;
+const NODE_SCALE = isPhone ? 1.8 : 1.0;
 
 // --- Layers in z-order: background (bottom) → edges → nodes (top)
 var backgroundLayer = new Konva.Layer({ listening: false });
