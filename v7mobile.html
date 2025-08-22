@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Konva Node Graph – white background, edges under nodes</title>
+  <script src="https://unpkg.com/konva@9/konva.min.js"></script>
+  <style>
+    body { margin: 0; }
+    #container { width: 100vw; height: 100vh; overflow: hidden; }
+    #menu { position: absolute; display: none; background: white; border: 1px solid black; padding: 5px; z-index: 10; }
+    #menu ul { list-style: none; padding: 0; margin: 0; }
+    #menu li { padding: 5px; cursor: pointer; }
+    #menu li:hover { background: lightgray; }
+    @media (max-width: 600px), (pointer: coarse) {
+    #menu { font-size: 18px; }
+    #menu li { padding: 12px 16px; }
+  }
+</style>
+</head>
+<body>
+  <div id="container"></div>
+  <div id="menu">
+    <ul>
+      <li onclick="addNodeAtPos('Person')">Add Person</li>
+      <li onclick="addNodeAtPos('Entity')">Add Entity</li>
+      <li onclick="addNodeAtPos('Email')">Add Email</li>
+      <li onclick="addNodeAtPos('Social Media')">Add Social Media</li>
+      <li onclick="setMode('delete')">Delete Mode</li>
+      <li onclick="setMode('none')">Normal Mode</li>
+      <li onclick="undoConnection()">Undo Connection</li>
+      <li onclick="exportJPEG()">Export JPEG</li>
+      <li onclick="clearCanvas()">Clear Canvas</li>
+    </ul>
+  </div>
+
+<script>
+// --- Stage
+var width = window.innerWidth;
+var height = window.innerHeight;
+var stage = new Konva.Stage({
+  container: 'container',
+  width: width,
+  height: height,
+  draggable: true // pan
+});
+
+// Touch-friendly global hit detection during drags
+Konva.hitOnDragEnabled = true;
+
+// Device / input heuristics
+const isPhone = window.matchMedia('(max-width: 600px)').matches || window.matchMedia('(pointer: coarse)').matches;
+const NODE_SCALE = isPhone ? 1.4 : 1.0;
+
+// --- Layers in z-order: background (bottom) → edges → nodes (top)
+var backgroundLayer = new Konva.Layer({ listening: false });
+var edgesLayer = new Konva.Layer({ listening: false });
+var nodesLayer = new Konva.Layer();
+
+// White background rect (baked into JPEG/PNG/WebP exports)
+var bgRect = new Konva.Rect({
+  x: 0,
+  y: 0,
+  width: stage.width(),
+  height: stage.height(),
+  fill: 'white',
+  listening: false
+});
+backgroundLayer.add(bgRect);
+
+stage.add(backgroundLayer);
+stage.add(edgesLayer);
+stage.add(nodesLayer);
+backgroundLayer.moveToBottom();
+
+// Keep background sized to stage if viewport changes
+window.addEventListener('resize', () => {
+  stage.width(window.innerWidth);
+  stage.height(window.innerHeight);
+  bgRect.width(stage.width());
+  bgRect.height(stage.height());
+  stage.batchDraw();
+});
+
+// --- State
+var connections = [];
+var nodes = [];
+var selectedMode = 'none';
+var currentPos = null; // stage coords for node creation
+var menu = document.getElementById('menu');
+var tempArrow = null;
+var startNode = null;
+
+// expose menu handlers to window
+window.addNodeAtPos = addNodeAtPos;
+window.setMode = setMode;
+window.undoConnection = undoConnection;
+window.exportJPEG = exportJPEG;
+window.clearCanvas = clearCanvas;
+
+// --- Layout constants
+var MIN_NODE_WIDTH = Math.round(120 * NODE_SCALE);
+var iconSize      = Math.round(40  * NODE_SCALE);
+var iconHitRadius = Math.round(30  * NODE_SCALE);
+var GAP           = Math.round(6   * NODE_SCALE);
+var PADDING_X     = Math.round(8   * NODE_SCALE);
+var EDGE_GAP      = Math.round(8   * NODE_SCALE); // extra gap from icon edge for arrow endpoints
+var dragThreshold = isPhone ? 8 : 5;
+var LONG_PRESS_MS = isPhone ? 380 : 500;
+
+var connectPressTimer = null;
+var pressPos = null; // stage coords when press started
+var isDraggingNode = false;
+
+function cancelConnectTimer(){ if (connectPressTimer) { clearTimeout(connectPressTimer); connectPressTimer = null; } }
+
+// --- Pointer helpers
+function getPointerOnStage(){
+  var p = stage.getPointerPosition();
+  if(!p) return null;
+  var t = stage.getAbsoluteTransform().copy().invert();
+  return t.point(p);
+}
+function clientToStage(clientX, clientY){
+  var rect = stage.container().getBoundingClientRect();
+  var point = { x: clientX - rect.left, y: clientY - rect.top };
+  var t = stage.getAbsoluteTransform().copy().invert();
+  return t.point(point);
+}
+
+// --- Icons
+function getPathData(type){
+  switch(type){
+    case 'Person': return 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z';
+    case 'Entity': return 'M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z';
+    case 'Email': return 'M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z';
+    case 'Social Media': return 'M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z';
+    default: return '';
+  }
+}
+
+// --- Autosize node to text (single line, no wrap)
+function layoutNode(group){
+  var circle = group.findOne('Circle');
+  var path = group.findOne('Path');
+  var text = group.findOne('Text');
+  var textW = Math.ceil(text.getTextWidth());
+  var newWidth = Math.max(MIN_NODE_WIDTH, textW + PADDING_X*2);
+  group.width(newWidth);
+  var centerX = newWidth/2;
+  circle.x(centerX);
+  path.x(centerX);
+  text.x(0);
+  text.width(newWidth);
+  text.y(iconSize + GAP);
+  var newHeight = iconSize + GAP + text.height();
+  group.height(newHeight);
+}
+
+function createNode(type, centerX, centerY){
+  var group = new Konva.Group({
+    x: centerX - MIN_NODE_WIDTH/2,
+    y: centerY - (iconSize + GAP)/2,
+    draggable: true,
+    width: MIN_NODE_WIDTH,
+    height: iconSize + GAP
+  });
+  var iconCenterX = MIN_NODE_WIDTH/2;
+  var iconCenterY = iconSize/2;
+  var circle = new Konva.Circle({ x: iconCenterX, y: iconCenterY, radius: iconHitRadius, fill: 'yellow', opacity: 0.3 });
+  group.add(circle);
+  var path = new Konva.Path({ x: iconCenterX, y: iconCenterY, data: getPathData(type), fill: 'black', scale: { x: iconSize/24, y: iconSize/24 }, offset: { x: 12, y: 12 } });
+  group.add(path);
+  var text = new Konva.Text({ x: 0, y: iconSize + GAP, text: '', fontSize: Math.round(14 * NODE_SCALE), width: MIN_NODE_WIDTH, align: 'center', wrap: 'none', ellipsis: false });
+  group.add(text);
+
+  layoutNode(group);
+
+  group.on('dragstart', function(){ isDraggingNode = true; cancelConnectTimer(); });
+  group.on('dragmove', function(){ updateConnectedArrows(this); });
+  group.on('dragend', function(){ isDraggingNode = false; });
+
+  group.on('dblclick dbltap', function(){
+    var currentText = text.text();
+    var newTitle = prompt('Enter title:', currentText);
+    if (newTitle !== null){ text.text(newTitle); layoutNode(group); stage.batchDraw(); }
+  });
+
+  group.on('mousedown touchstart', function(e){
+    if (selectedMode !== 'none') return;
+    if (isDraggingNode) return;
+    if (e.evt && (e.evt.button === 2)) return; // ignore right-click
+    pressPos = getPointerOnStage();
+    var node = this;
+    cancelConnectTimer();
+    connectPressTimer = setTimeout(function(){
+      if (isDraggingNode) { cancelConnectTimer(); return; }
+      startNode = node;
+      var center = getIconCenter(startNode);
+      var end = getPointerOnStage() || center;
+      tempArrow = new Konva.Arrow({ points: [center.x, center.y, end.x, end.y], pointerLength: 10, pointerWidth: 10, fill: '#ccc', stroke: '#ccc', strokeWidth: 1 });
+      edgesLayer.add(tempArrow);
+      stage.batchDraw();
+      startNode.draggable(false);
+      cancelConnectTimer();
+    }, LONG_PRESS_MS);
+  });
+
+  return group;
+}
+
+function getIconCenter(node){
+  var circle = node.findOne('Circle');
+  var box = circle.getClientRect({ relativeTo: stage });
+  return { x: box.x + box.width/2, y: box.y + box.height/2 };
+}
+function getIconRadius(node){ return node.findOne('Circle').radius(); }
+
+function calculatePoints(from, to){
+  var fromCenter = getIconCenter(from);
+  var toCenter = getIconCenter(to);
+  var dx = toCenter.x - fromCenter.x;
+  var dy = toCenter.y - fromCenter.y;
+  var dist = Math.sqrt(dx*dx + dy*dy) || 1;
+  var ux = dx / dist, uy = dy / dist;
+  var startOffset = getIconRadius(from) + EDGE_GAP;
+  var endOffset   = getIconRadius(to)   + EDGE_GAP;
+  var startX = fromCenter.x + ux * startOffset;
+  var startY = fromCenter.y + uy * startOffset;
+  var endX   = toCenter.x   - ux * endOffset;
+  var endY   = toCenter.y   - uy * endOffset;
+  return [startX, startY, endX, endY];
+}
+
+function updateConnectedArrows(node){
+  connections.forEach(function(conn){
+    if (conn.from === node || conn.to === node){
+      var points = calculatePoints(conn.from, conn.to);
+      conn.arrow.points(points);
+    }
+  });
+  stage.batchDraw();
+}
+
+function updateTempArrow(e){
+  if (!tempArrow || !startNode) return;
+  var pos = getPointerOnStage();
+  if (!pos) return;
+  var center = getIconCenter(startNode);
+  tempArrow.points([center.x, center.y, pos.x, pos.y]);
+  stage.batchDraw();
+}
+
+function tryConnect(e){
+  if (connectPressTimer) { cancelConnectTimer(); }
+  if (!tempArrow) return;
+  var pos = getPointerOnStage();
+  var targetNode = null;
+  nodes.forEach(function(node){
+    if (node === startNode) return;
+    var center = getIconCenter(node);
+    var dx = pos.x - center.x;
+    var dy = pos.y - center.y;
+    var dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < iconHitRadius) targetNode = node;
+  });
+  if (targetNode){
+    var points = calculatePoints(startNode, targetNode);
+    var arrow = new Konva.Arrow({ points: points, pointerLength: 10, pointerWidth: 10, fill: '#ccc', stroke: '#ccc', strokeWidth: 1 });
+    edgesLayer.add(arrow);
+    connections.push({ from: startNode, to: targetNode, arrow: arrow });
+  }
+  tempArrow.destroy();
+  tempArrow = null;
+  if (startNode) startNode.draggable(true);
+  startNode = null;
+  stage.batchDraw();
+}
+
+function addNodeAtPos(type){
+  if (currentPos){
+    var node = createNode(type, currentPos.x, currentPos.y);
+    nodesLayer.add(node);
+    nodes.push(node);
+    stage.batchDraw();
+  }
+  hideMenu();
+}
+
+function deleteHandler(e){
+  if (e.target === stage) return;
+  var target = e.target.findAncestor('Group');
+  if (target){
+    connections = connections.filter(function(conn){ if (conn.from === target || conn.to === target){ conn.arrow.destroy(); return false; } return true; });
+    nodes = nodes.filter(function(n){ return n !== target; });
+    target.destroy();
+    stage.batchDraw();
+  }
+}
+
+function setMode(mode){
+  selectedMode = mode;
+  stage.off('click');
+  if (mode === 'delete') stage.on('click', deleteHandler);
+  hideMenu();
+}
+
+function undoConnection(){
+  if (connections.length > 0){
+    var lastConn = connections.pop();
+    lastConn.arrow.destroy();
+    stage.batchDraw();
+  }
+  hideMenu();
+}
+
+function exportJPEG(){
+  var dataURL = stage.toDataURL({ mimeType: 'image/jpeg', quality: 1 });
+  var link = document.createElement('a');
+  link.download = 'canvas.jpg';
+  link.href = dataURL;
+  link.click();
+  hideMenu();
+}
+
+function clearCanvas(){
+  edgesLayer.destroyChildren();
+  nodesLayer.destroyChildren();
+  connections = [];
+  nodes = [];
+  stage.batchDraw();
+  hideMenu();
+}
+
+function hideMenu(){ menu.style.display = 'none'; }
+
+// --- Context menu (right click) precise placement ---
+stage.on('contextmenu', function(e){
+  e.evt.preventDefault();
+  var overGroup = e.target && e.target.findAncestor && e.target.findAncestor('Group');
+  if (overGroup) return;
+  currentPos = clientToStage(e.evt.clientX, e.evt.clientY);
+  menu.style.left = e.evt.clientX + 'px';
+  menu.style.top  = e.evt.clientY + 'px';
+  menu.style.display = 'block';
+});
+
+// --- Long press (mobile) precise placement ---
+var pressTimer = null;
+stage.on('touchstart', function(e){
+  if (pressTimer === null){
+    pressTimer = setTimeout(function(){
+      var touch = e.evt.touches && e.evt.touches[0];
+      if (!touch) { pressTimer = null; return; }
+      var hit = stage.getIntersection(stage.getPointerPosition());
+      if (hit) { pressTimer = null; return; }
+      currentPos = clientToStage(touch.clientX, touch.clientY);
+      menu.style.left = touch.clientX + 'px';
+      menu.style.top  = touch.clientY + 'px';
+      menu.style.display = 'block';
+      pressTimer = null;
+    }, LONG_PRESS_MS);
+  }
+});
+
+stage.on('touchend', function(){ if (pressTimer !== null){ clearTimeout(pressTimer); pressTimer = null; } });
+stage.on('touchmove', function(){ if (pressTimer !== null){ clearTimeout(pressTimer); pressTimer = null; } });
+
+// --- Arrow updates & drag-threshold cancel ---
+stage.on('mousemove touchmove', function(e){
+  updateTempArrow(e);
+  if (connectPressTimer){
+    var pos = getPointerOnStage();
+    if (pos && pressPos){
+      var dx = pos.x - pressPos.x;
+      var dy = pos.y - pressPos.y;
+      if (Math.sqrt(dx*dx + dy*dy) > dragThreshold){ cancelConnectTimer(); }
+    }
+  }
+});
+
+stage.on('mouseup touchend', function(e){ if (isDraggingNode){ cancelConnectTimer(); } tryConnect(e); });
+
+document.addEventListener('mousedown', function(e){ if (e.button !== 0) return; if (menu.style.display === 'block' && !menu.contains(e.target)) hideMenu(); });
+
+// --- Initial scale up on phones for bigger visuals ---
+if (isPhone) {
+  var s = 1.25; // gentle zoom-in
+  var center = { x: stage.width()/2, y: stage.height()/2 };
+  stage.scale({ x: s, y: s });
+  stage.position({ x: center.x - center.x * s, y: center.y - center.y * s });
+}
+
+// --- Zoom with mouse wheel at cursor ---
+stage.on('wheel', function(e){
+  e.evt.preventDefault();
+  var scaleBy = 1.05;
+  var oldScale = stage.scaleX();
+  var pointer = stage.getPointerPosition();
+  if (!pointer) return;
+  var direction = e.evt.deltaY > 0 ? 1 : -1;
+  var newScale = direction > 0 ? oldScale / scaleBy : oldScale * scaleBy;
+  var mousePointTo = { x: (pointer.x - stage.x()) / oldScale, y: (pointer.y - stage.y()) / oldScale };
+  stage.scale({ x: newScale, y: newScale });
+  var newPos = { x: pointer.x - mousePointTo.x * newScale, y: pointer.y - mousePointTo.y * newScale };
+  stage.position(newPos);
+  stage.batchDraw();
+});
+
+// Initial mode
+setMode('none');
+</script>
+</body>
+</html>
