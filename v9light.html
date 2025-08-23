@@ -85,7 +85,7 @@ Konva.hitOnDragEnabled = true;
 
 // Device heuristics (larger nodes/menu on phones)
 const isPhone = window.matchMedia('(max-width: 600px)').matches || window.matchMedia('(pointer: coarse)').matches;
-const NODE_SCALE = isPhone ? 1.6 : 1.0;
+const NODE_SCALE = 1.0;
 
 // --- Layers: background → edges → nodes
 var backgroundLayer = new Konva.Layer({ listening: false });
