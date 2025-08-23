@@ -29,7 +29,7 @@
     .chip { display: flex; align-items: center; gap: 6px; padding: 6px; border: 0; border-radius: 0; background: transparent; cursor: grab; justify-content: flex-start; text-align: left; font-weight: 500; color: #1d1c1b;}
     .chip:hover { display: flex; align-items: center; gap: 6px; padding: 6px; border: 0; border-radius: 16px; background: #eeedec; cursor: grab; justify-content: flex-start; text-align: left; }
     .chip:active { cursor: grabbing; }
-    .chip span { font-size: 14px; text-align: left; }
+    .chip span { font-size: 16px; text-align: left; }
     .chip[draggable="true"] { user-select: none; }
 
     .actions { display: grid; gap: 8px; }
@@ -44,8 +44,6 @@
     /* Mobile bumps for HTML-only UI (sidebar) */
     @media (max-width: 600px), (pointer: coarse) {
       :root { --sidebar-w: 116px; }
-      .chip span { font-size: 16px; }
-      .btn { font-size: 16px; padding: 8px 10px; }
     }
   </style>
 </head>
